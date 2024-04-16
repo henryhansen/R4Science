@@ -362,9 +362,8 @@ display: none;
 these exercises… so don’t take this as the only way.</p>
 <div id="exercise-1" class="section level3">
 <h3>Exercise #1</h3>
-<pre class="r"><code>library(palmerpenguins)</code></pre>
-<pre><code>## Warning: package &#39;palmerpenguins&#39; was built under R version 4.2.3</code></pre>
-<pre class="r"><code>data(&quot;penguins&quot;)
+<pre class="r"><code>library(palmerpenguins)
+data(&quot;penguins&quot;)
 
 descriptive_stats_function &lt;- function(data, cols) {
   
@@ -457,6 +456,26 @@ descriptive_stats_function(penguins, &#39;bill_length_mm&#39;, function_name = c
 descriptive_stats_function(penguins, &#39;bill_length_mm&#39;, function_name = c(&#39;mean&#39;, &#39;median&#39;, function(x) x/100, &#39;hello&#39;, &#39;sd&#39;), na.rm = TRUE)</code></pre>
 <pre><code>##                 mean     median error error sd      
 ## function_output 43.92193 44.45  NA    NA    5.459584</code></pre>
+</div>
+</div>
+<div id="mapping" class="section level2">
+<h2>Mapping</h2>
+<div id="exercise-4" class="section level3">
+<h3>Exercise #4</h3>
+<p>Here we create a list of data.frames that we sampled from the
+pengiuns dataset.</p>
+<pre class="r"><code>library(purrr)
+library(dplyr)
+
+penguins_list &lt;- map(1:10, ~penguins)
+
+penguins_rs &lt;- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TRUE))</code></pre>
+</div>
+<div id="exercise-4-1" class="section level3">
+<h3>Exercise #4</h3>
+<p>Here we map through each data.frame in <code>penguins_rs</code> to
+get the slope of the linear model.</p>
+<pre class="r"><code>penguins_coefs &lt;- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])</code></pre>
 </div>
 </div>
 

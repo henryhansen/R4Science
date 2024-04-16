@@ -7,7 +7,7 @@ date: '`r Sys.Date()`'
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Solutions  
@@ -114,3 +114,31 @@ descriptive_stats_function <- function(data, cols, function_name = c('mean', 'sd
 descriptive_stats_function(penguins, 'bill_length_mm', function_name = c('mean', 'median', function(x) x/100, 'hello', 'sd'), na.rm = TRUE)
 
 ```
+
+## Mapping  
+
+### Exercise #4  
+
+Here we create a list of data.frames that we sampled from the pengiuns dataset.  
+
+```{r}
+library(purrr)
+library(dplyr)
+
+penguins_list <- map(1:10, ~penguins)
+
+penguins_rs <- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TRUE))
+
+```
+
+
+### Exercise #4  
+
+Here we map through each data.frame in `penguins_rs` to get the slope of the linear model.  
+
+```{r}
+
+penguins_coefs <- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])
+```
+
+

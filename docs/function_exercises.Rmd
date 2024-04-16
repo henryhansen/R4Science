@@ -8,7 +8,7 @@ date: '`r Sys.Date()`'
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Functions  
@@ -266,6 +266,7 @@ catching_error <- function(x) {
 }
 
 catching_error(1)
+catching_error(c(1:5))
 
 # now with an error
 catching_error('1')
@@ -321,3 +322,137 @@ catching_error(list(1,10,100, '1', 10, 100)) # so need a list
 *Try to catch an error in `descriptive_stats_function()` when adding `function_name = function(x) x/100`*  
 
 Hint: the output within the for-loop will need to account for the non-character type.  
+
+## Mapping   
+
+In this section we'll take what we learned from before and use those same concepts to `purrr::map` functions in R. These suite of functions are very similar to the `*apply` base R functions but offer some additional functionality to help with iterating over multiple objects. We'll start by creating bootstrapped versions of the pengiuns dataset using `map()`. `map` is essentially a for-loop like we learned before but with more oversight and speed (written in C). This will help us not shoot ourselves in the foot creating our own for-loop functions.  
+
+### Exercise #4  
+
+Our goal is to create some bootstrapped versions of the pengiuns dataset but first let's do some simple `map`-ing calls. If you are familiar with `for` loops then moving to `map()` functionality is really just replacing and matching what you would do in the `for` loop.  
+
+Let's go back to our practice example in exercise #3 where we take a simple function like `function(x) x/100` and loop through a vector. This is a really verbose function and could use some refactoring to help with all the gotchas but what's nice is it's essentially setup for `map()`.  
+
+```{r, error = TRUE}
+library(purrr)
+
+divide_by_100 <- function(x) x/100
+
+
+map(1:5, # the vector/list to be used
+    divide_by_100 ) # the function that will use vector/list
+
+map(list(1, '1', 10), divide_by_100)
+
+```
+
+We still get that error... A way to control for this is a function called `safely`. This will return a list with `result` and `error` for each element. This is very similar to `tryCatch()` and will help with finicky or unknown data.  
+
+```{r}
+
+map(list(1, '1', 10), safely(divide_by_100))
+
+```
+
+Now all we need to do is clean up a little and we'll have a similar function as before.  
+
+```{r}
+map(list(1, '1', 10), safely(divide_by_100, otherwise = NA_real_)) |>
+  map(~.x[['result']]) |>
+  rbind() |> 
+  as.numeric()
+```
+
+You can also use `possibly()` which will reduce one more step but you see the error result when investigated...  
+
+```{r}
+map(list(1, '1', 10), possibly(divide_by_100, otherwise = NA_real_)) |>
+  rbind() |> 
+  as.numeric()
+```
+
+Another thing to be aware of is the syntax within the function call. Above we really weren't explicitly passing the list or atomic vector to the function or weren't writing out an anonymous function like `function(x) x/100`. However, sometimes you'll want to think of it as explicitly passing this information, i.e. functions that are not anonymous or one argument. This is because `purrr` handles the `~` (called "twiddle") as a way to translate the rhs into a function. For example,  
+
+```{r}
+
+map(list(penguins, penguins), ~descriptive_stats_function(.x, cols = 'bill_length_mm', function_name = c('mean'), na.rm = TRUE))
+
+as_mapper(~descriptive_stats_function(.x, cols = 'bill_length_mm', function_name = c('mean'), na.rm = TRUE))
+```
+
+Above you can see that this allows us to think of the arguments as . for one argument (..1) or .x for one argument and .y for the second argument (..2) and so forth. So when we use `map()` we'll want to remember that we are just sending positions from the `list` or `vector` into the function.  
+
+
+**Practice**  
+
+*Using `map()` let's create 10 new data.frames from the penguins dataset using `sample(replace = FALSE)` and keep all in a list, e.g. list of 10. Name the object `penguins_rs`.*  
+
+Hint: you'll want to put the penguins into 10 different lists.  
+
+### Exercise #5  
+
+Now that we have a bootstrapped dataset of 10 different samples, we'll want to perform some summary stats with it. Just like before we can use this list of data.frames to call a function on. So now we want to see how different these datasets are, right? Let's look at each of these data.frames and plot a linear model to them as well as the original dataset.  
+
+```{r, echo=FALSE}
+library(dplyr)
+
+penguins_list <- map(1:10, ~penguins)
+
+penguins_rs <- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TRUE))
+```
+
+
+```{r}
+library(ggplot2) 
+
+map2(penguins_rs, 1:10, ~.x |> mutate(bootstrap = .y)) |>
+  bind_rows() |>
+  ggplot(aes(bill_length_mm, flipper_length_mm)) + 
+  geom_point(alpha = 0.08) +
+  geom_smooth(aes(group = bootstrap, color = bootstrap), method = 'lm', se = FALSE) + 
+  stat_smooth(data = penguins,geom = 'smooth', color = 'red', 
+              aes(bill_length_mm, flipper_length_mm),
+              method = 'lm',
+              se = TRUE) + 
+  theme_bw()
+```
+
+Here we can see that the fit lines have different slopes and intercepts, which they should since we bootstrapped them but also how the original dataset with standard errors pretty much encapsulates our bootstrapped data. But what if we want the coefficients from the data because we want to see how different they are, should be easy with a `map()` function, right? With additional help like know what `lm()` and `summary()` provide in the results we can then pull from our list.  
+
+```{r}
+
+summary(lm(flipper_length_mm ~ bill_length_mm, data = penguins))
+
+```
+
+We see that there is some sort of table but not like a normal data.frame so we need to save to an object to see what the elements are called.  
+
+```{r}
+looking_at_summary <- summary(lm(flipper_length_mm ~ bill_length_mm, data = penguins))
+
+str(looking_at_summary)
+```
+
+We can see that there is a `vector` called `$coefficients` so let's pull that and check it out.  
+
+```{r}
+looking_at_summary$coefficients
+```
+
+Ok, this is good! Now we know we'll need the first column and second row for the slope estimate.  
+
+```{r}
+looking_at_summary$coefficients[2, 1]
+```
+
+**Practice**  
+
+*Use the steps above to `map()` through the `penguins_rs` and get the slopes of each linear model output.*  
+
+Hint: using `$` will help grab the needed coefficients.  
+
+### Exercise #6  
+
+For this final exercise we'll want to see how far off the original dataset is with the bootstrapped data set. 
+
+
