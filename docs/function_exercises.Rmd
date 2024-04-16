@@ -1,0 +1,323 @@
+---
+title: "Exercises"
+output:
+  html_document:
+    toc: true
+    css: 'cayman.css'
+date: '`r Sys.Date()`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions  
+
+In these exercises we're going to focus more on the application of functional programming in R with `functions()` and less on the nitty-gritty computer science stuff (theory). We'll progressively build logic within these steps with the goal of making your code easy to use and efficient, which will hopefully help with not duplicating yourself all the time. The rule of thumb is 3. If you duplicate something more than 2 times you should probably write a function for it `r emo::ji('smile')`.   
+
+### Exercise #1  
+
+In this exercise we're going to start with a simple example: I want to know what the `mean` and `sd` are in a specific column of the `palmerpenguins` data.frame (or really any data.frame).
+
+
+*Load the package and read-in the data.frame*
+```{r}
+#install.packages("palmerpenguins")
+library(palmerpenguins)
+data("penguins")
+
+head(penguins)
+```
+
+Lets get the `mean` in `bill_length_mm` column. 
+
+```{r}
+mean(penguins$bill_length_mm, na.rm = TRUE) # na.rm = TRUE will calculate mean when there are NA's
+```
+
+Now what about `bill_depth_mm`.  
+
+```{r}
+mean(penguins$bill_depth_mm, na.rm = TRUE)
+```
+
+But what about `sd`.... 
+
+```{r}
+sd(penguins$bill_length_mm, na.rm = TRUE)
+```
+
+You see how this will end up. We'll just keep repeating ourselves for each column and each statistic...
+
+This is were functions can really help. But how can we build a function? Let's start simple:
+
+1. What is a function?  
+
+2. We want `mean` and `sd` for specific columns.  
+
+#### What is a function?    
+
+
+A `function` in R has three main components to it: `formals()`, `body()`, and `environment()`.  
+
+*First we need to create an example function.*  
+
+This function takes a vector and some logical arguments that then calculates the mean of the vector two different ways, e.g. population and sample.  
+
+```{r}
+my_mean <- function(vector, remove_na = TRUE, sample = TRUE) {
+  
+  if(sample){
+  
+    sum(vector, na.rm = remove_na)/(length(vector)-1)
+  
+  } else {
+    
+    sum(vector, na.rm = remove_na)/length(vector)
+    
+    }
+}
+```
+
+*Break down function*  
+
+The `formals()` are going to be the arguments that you call within the `function()` call. This tells the `body()` what objects to look for first. Since R uses lexical scoping it will look for objects from the inside out, e.g. `environment()`. This can be manipulated but most of the time you won't need to change this.  
+
+```{r}
+formals(my_mean)
+
+body(my_mean)
+
+environment(my_mean)
+```
+
+#### Getting mean and sd  
+
+Reiterating, a function is a way to not duplicate code and is really handy for repetitive tasks. In the example below, we'll start to build a function that will eventually be the `mean` and `sd` of a column in a `data.frame`.
+
+```{r}
+
+descriptive_stats_function <- function() {
+  
+  print('Getting mean and sd')
+  
+}
+
+descriptive_stats_function()
+
+```
+
+
+That's easy enough, what about adding arguments? Arguments are ways to provide objects and/or statements to call within your function. For an argument, let's provide the `pengiuns` data.frame and get the `length()` and `nrow()` of the data.frame and print that information out.  
+
+```{r}
+
+descriptive_stats_function <- function(data) {
+  
+  cat(paste0('There are ', length(data), ' columns and ' , nrow(data), ' rows in this data.frame'))
+  
+}
+
+descriptive_stats_function(penguins)
+
+```
+**Practice**  
+
+*Try and build a function that takes a data.frame as an argument and column name as an argument and get back the mean and sd for those columns. Call it `descriptive_stats_function`*.
+
+Hint: Indexing the data.frame/tibble by column name can help, e.g. `pengiuns[,c('bill_depth_mm')]`  
+
+
+### Exercise #2    
+
+In this exercise we'll start adding some more flexibility to the function by adding extra arguments. In the previous exercise we created a function called `descriptive_stats_function()` but we hard coded in the `mean` and `sd`. What if we wanted the median? Or some other custom function? This is where we can add in an argument to help with multiple results.  
+
+
+*for-loop*  
+
+A lot of times you'll here that a for-loop is really bad practice in R because of *copy when modified* behavior and that's not a bad take, especially for large objects! But, if vectorized or using small object sizes it's really not that bad and can help frame functions we'll use later on. It also can help with repetitive tasks that really only need a few things changed. Below we'll do a simple `for` loop to show how we might be able to accomplish exercise #2.  
+
+```{r}
+
+penguin_col_names <- names(penguins)
+
+penguin_col_names
+
+for (i in penguin_col_names) {
+  
+  cat(paste0('Column ', match(i, penguin_col_names), ': ', i, '\n'))
+  
+}
+
+```
+
+
+What's nice about this is we can put it within a function call.  
+
+```{r}
+
+
+print_column_names <- function(data) {
+  
+  col_names <- names(penguins)
+
+for (i in col_names) {
+  
+  cat(paste0('Column ', match(i, col_names), ': ', i, '\n'))
+  
+}
+  
+  
+}
+
+print_column_names(penguins)
+
+str(penguins)
+
+```
+
+Now if we want to store that information in a `vector` we just need to pre-allocate it. There are multiple ways to this but for this example we'll store it in a `list()`. Also, since `cat()` is a `print()` side-effect we'll need to capture the output using `capture.output()`.  
+
+```{r}
+
+
+print_column_names <- function(data) {
+  
+  col_names <- names(penguins)
+
+  # pre-allocate empty list
+  
+  my_col_names_list <- list()
+  
+for (i in col_names) {
+  
+  #now store in the list
+  my_stored_list <- capture.output(cat(paste0('Column ', match(i, col_names), ': ', i, '\n')))
+  
+  # and append to my_col_names_list
+  my_col_names_list <- append(my_col_names_list, my_stored_list)
+  
+}
+  
+  return(my_col_names_list)
+  
+}
+
+for_loop_example <- print_column_names(penguins)
+
+for_loop_example
+
+```
+
+**Practice**
+
+*Now let's take our function from before (exercise #1 `descriptive_stats_function()`) and add a new argument that will take a list of function names.  *  
+
+We really want the user to be able to bring in any function right? How might we do this within a for-loop? 
+
+Hint: `?do.call` is a great base R function to help with this.
+
+
+### Exercise #3  
+
+In this exercise we'll go through potential issues with the function we created in exercise #2. Sometimes when building a function that *loops* it can cause errors where the conditions might not be satisfied. This happens a lot with API calls to some endpoint on the web but can also happen when your data is expecting one thing (`character`) and is given another (`numeric`).  
+
+```{r, echo = FALSE}
+descriptive_stats_function <- function(data, cols, function_name = c('mean', 'sd'), ...) {
+  
+  function_output <- list()
+  
+  for(i in function_name){
+    
+    call_function <- do.call(i, list(data[,cols][[1]], ...))
+    
+    call_df <- data.frame(i = call_function)
+    
+    colnames(call_df)[1] <- i
+    
+    function_output <- append(function_output, call_df)
+    
+  }
+  
+  return(rbind(function_output))
+  
+}
+
+descriptive_stats_function(penguins, 'bill_length_mm', function_name = c('mean', 'sd', 'median', 'max', 'min'), na.rm = TRUE)
+
+```
+
+Instead of adding a function name that's *quoted*, we'll add a function type and see what happens.  
+
+```{r, error = TRUE}
+
+descriptive_stats_function(penguins, 'bill_length_mm', function_name = function(x) x/100)
+
+```
+
+We get an expected error! How might we fix this? Well just like before, there are multiple ways to do this but a standard in base R is to use the `tryCatch()` function. Here is an example below:  
+
+```{r, error = TRUE}
+
+catching_error <- function(x) {
+  
+  x/100
+  
+}
+
+catching_error(1)
+
+# now with an error
+catching_error('1')
+
+catching_error <- function(x) {
+  
+  tryCatch(x/100, # expression to be evaluated
+                             error = function(e) {
+                               message('ERROR: converted non-numeric type to NA')
+                               NA_real_
+                               }) 
+  
+}
+
+# now it prints a message
+catching_error('1')
+
+```
+
+This is great but it really is useful within a *loop*.  
+
+```{r}
+
+catching_error <- function(x) {
+  
+  divide_by_100 <- vector()
+  
+  for(i in seq_along(x)){
+    
+  divide_by_100[[i]] <- tryCatch(x[[i]]/100, # expression to be evaluated
+                                  error = function(e){
+                                    message('ERROR: converted non-numeric type to NA')
+                                    NA_real_
+                                    } # what to return if error happens
+                                 )
+  
+  }
+  
+  divide_by_100
+  
+}
+
+catching_error(c(1, 2, 3, 4))
+
+catching_error(c(1,10,100, '1', 10, 100)) # because R coercion rules converts all elements to string
+
+catching_error(list(1,10,100, '1', 10, 100)) # so need a list
+
+```
+
+**Practice**  
+
+*Try to catch an error in `descriptive_stats_function()` when adding `function_name = function(x) x/100`*  
+
+Hint: the output within the for-loop will need to account for the non-character type.  

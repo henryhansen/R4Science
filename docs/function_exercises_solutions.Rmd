@@ -1,0 +1,116 @@
+---
+title: "Solutions"
+output:
+  html_document:
+    css: 'cayman.css'
+date: '`r Sys.Date()`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Solutions  
+
+Below are the solutions for the exercises. Many ways to complete these exercises... so don't take this as the only way.  
+
+### Exercise #1  
+
+
+```{r}
+library(palmerpenguins)
+data("penguins")
+
+descriptive_stats_function <- function(data, cols) {
+  
+  cat(paste0('There are ', length(data), ' columns and ' , nrow(data), ' rows in this data.frame'))
+  
+  mean_data <- mean(data[,cols][[1]], na.rm = TRUE)
+  sd_data <- sd(data[,cols][[1]], na.rm = TRUE)
+  col_name <- cols[[1]]
+  
+  return(data.frame(mean = mean_data,
+                    sd = sd_data,
+                    name = col_name))
+  
+}
+
+test_df <- descriptive_stats_function(penguins, cols = 'bill_length_mm')
+test_df
+
+descriptive_stats_function(penguins, cols = 'bill_depth_mm')
+```
+
+
+### Exercise #2  
+
+Now we'll want to add another argument like a function. Again, lots of ways to do this but we'll just add a `vector` of function names that only take a vector
+
+
+
+```{r}
+descriptive_stats_function <- function(data, cols, function_name = c('mean', 'sd'), ...) {
+  
+  function_output <- list()
+  
+  for(i in function_name){
+    
+    call_function <- do.call(i, list(data[,cols][[1]], ...))
+    
+    call_df <- data.frame(i = call_function)
+    
+    colnames(call_df)[1] <- i
+    
+    function_output <- append(function_output, call_df)
+    
+  }
+  
+  return(rbind(function_output))
+  
+}
+
+descriptive_stats_function(penguins, 'bill_length_mm', function_name = c('mean', 'sd', 'median', 'max', 'min'), na.rm = TRUE)
+
+```
+
+
+### Exercise #3  
+
+Here we are trying to catch an error in our `function_name` argument.  
+
+
+```{r}
+descriptive_stats_function <- function(data, cols, function_name = c('mean', 'sd'), ...) {
+  
+  function_output <- list()
+  
+  for(i in function_name){
+    
+    call_function <- tryCatch(do.call(i, list(data[,cols][[1]], ...)),
+                              error = function(e) {
+                                NA_real_
+                              })
+    
+    call_df <- data.frame(i = call_function)
+    
+    if(is.na(call_function)){
+      
+    colnames(call_df)[1] <- 'error'  
+    
+    } else {
+      
+    colnames(call_df)[1] <- i
+    
+    }
+    
+    function_output <- append(function_output, call_df)
+    
+  }
+  
+  return(rbind(function_output))
+  
+}
+
+descriptive_stats_function(penguins, 'bill_length_mm', function_name = c('mean', 'median', function(x) x/100, 'hello', 'sd'), na.rm = TRUE)
+
+```
