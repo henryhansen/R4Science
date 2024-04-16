@@ -477,6 +477,12 @@ penguins_rs &lt;- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TR
 get the slope of the linear model.</p>
 <pre class="r"><code>penguins_coefs &lt;- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])</code></pre>
 </div>
+<div id="exercise-6" class="section level3">
+<h3>Exercise #6</h3>
+<pre class="r"><code>repeated_og_slope &lt;- rep(summary(lm(flipper_length_mm ~ bill_length_mm, data = penguins))$coefficients[2,1], 10)
+
+og_bs_difference &lt;- map2(repeated_og_slope, penguins_coefs, ~abs(.x-.y)) |&gt; rbind() |&gt; as.numeric() </code></pre>
+</div>
 </div>
 
 

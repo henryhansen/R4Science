@@ -141,4 +141,12 @@ Here we map through each data.frame in `penguins_rs` to get the slope of the lin
 penguins_coefs <- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])
 ```
 
+### Exercise #6  
+
+```{r}
+repeated_og_slope <- rep(summary(lm(flipper_length_mm ~ bill_length_mm, data = penguins))$coefficients[2,1], 10)
+
+og_bs_difference <- map2(repeated_og_slope, penguins_coefs, ~abs(.x-.y)) |> rbind() |> as.numeric() 
+
+```
 

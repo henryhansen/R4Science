@@ -447,12 +447,45 @@ looking_at_summary$coefficients[2, 1]
 
 **Practice**  
 
-*Use the steps above to `map()` through the `penguins_rs` and get the slopes of each linear model output.*  
+*Use the steps above to `map()` through the `penguins_rs` and get the slopes of each linear model output. Call the object `penguins_coefs`.*  
 
 Hint: using `$` will help grab the needed coefficients.  
 
 ### Exercise #6  
 
-For this final exercise we'll want to see how far off the original dataset is with the bootstrapped data set. 
+For this final exercise we'll want to see how far off the original dataset is with the bootstrapped data set. Using all the techniques up to this point we'll want to create our own function and `map()` to the original dataset slope with the newly created bootstrap slopes. We are hoping to get an idea of the magnitude of difference between the slopes and then can visualise like below.   
+```{r,echo=FALSE}
+
+penguins_coefs <- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])
+
+repeated_og_slope <- rep(summary(lm(flipper_length_mm ~ bill_length_mm, data = penguins))$coefficients[2,1], 10)
+
+og_bs_difference <- map2(repeated_og_slope, penguins_coefs, ~abs(.x-.y)) |> rbind() |> as.numeric() 
+
+og_bs_difference %>% 
+  data.frame(slopes = .) %>% 
+  rsample::bootstraps(times = 100) %>% 
+  pull(splits) %>% 
+  map_dbl(
+    function(x) {
+      dat <- as.data.frame(x)$slopes
+      mean(dat)
+    }
+  ) %>% dplyr::tibble(slopes = .) %>% 
+  ggplot(aes(slopes)) + 
+  geom_histogram() + 
+  labs(x = 'Average Magnitude of Deviations') + 
+  theme_bw() 
+
+```
+
+**Practice**  
+
+*Use the functional programming style of `purrr` to compare the original dataset slope and the bootstrapped ones by calculating the absolute difference.*  
+
+Hint: You'll want to explore the `map2()` function.  
+
+
+
 
 
