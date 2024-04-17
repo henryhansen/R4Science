@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## Functions  
 
-In these exercises we're going to focus more on the application of functional programming in R with `functions()` and less on the nitty-gritty computer science stuff (theory). We'll progressively build logic within these steps with the goal of making your code easy to use and efficient, which will hopefully help with not duplicating yourself all the time. The rule of thumb is 3. If you duplicate something more than 2 times you should probably write a function for it `r emo::ji('smile')`.   
+In these exercises we're going to focus more on the application of functional programming in R with `functions()` and less on the nitty-gritty computer science stuff (theory). We'll progressively build logic within these steps with the goal of making your code easy to use and efficient, which will hopefully help with not duplicating yourself all the time. The rule of thumb is 3. If you duplicate something more than 2 times you should probably write a function for it.   
 
 ### Exercise #1  
 
