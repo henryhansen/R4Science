@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-04-16" />
+<meta name="date" content="2024-04-17" />
 
 <title>Solutions</title>
 
@@ -351,10 +351,26 @@ display: none;
 
 
 <h1 class="title toc-ignore">Solutions</h1>
-<h4 class="date">2024-04-16</h4>
+<h4 class="date">2024-04-17</h4>
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#solutions" id="toc-solutions">Solutions</a>
+<ul>
+<li><a href="#exercise-1" id="toc-exercise-1">Exercise #1</a></li>
+<li><a href="#exercise-2" id="toc-exercise-2">Exercise #2</a></li>
+<li><a href="#exercise-3" id="toc-exercise-3">Exercise #3</a></li>
+</ul></li>
+<li><a href="#mapping" id="toc-mapping">Mapping</a>
+<ul>
+<li><a href="#exercise-4" id="toc-exercise-4">Exercise #4</a></li>
+<li><a href="#exercise-5" id="toc-exercise-5">Exercise #5</a></li>
+<li><a href="#exercise-6" id="toc-exercise-6">Exercise #6</a></li>
+</ul></li>
+</ul>
+</div>
 
 <div id="solutions" class="section level2">
 <h2>Solutions</h2>
@@ -471,8 +487,8 @@ penguins_list &lt;- map(1:10, ~penguins)
 
 penguins_rs &lt;- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TRUE))</code></pre>
 </div>
-<div id="exercise-4-1" class="section level3">
-<h3>Exercise #4</h3>
+<div id="exercise-5" class="section level3">
+<h3>Exercise #5</h3>
 <p>Here we map through each data.frame in <code>penguins_rs</code> to
 get the slope of the linear model.</p>
 <pre class="r"><code>penguins_coefs &lt;- map(penguins_rs, ~summary(lm(flipper_length_mm ~ bill_length_mm, data = .x))$coefficients[2,1])</code></pre>

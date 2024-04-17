@@ -2,6 +2,7 @@
 title: "Solutions"
 output:
   html_document:
+    toc: true
     css: 'cayman.css'
 date: '`r Sys.Date()`'
 ---
@@ -132,7 +133,7 @@ penguins_rs <- map(penguins_list, ~sample_n(.x, size = nrow(.x), replace = TRUE)
 ```
 
 
-### Exercise #4  
+### Exercise #5  
 
 Here we map through each data.frame in `penguins_rs` to get the slope of the linear model.  
 
