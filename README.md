@@ -1,0 +1,1 @@
+This is the coding exercises and solutions for the R Programming Workshop for Science Reproducibility. Slides for the workshop can be found here: https://docs.google.com/presentation/d/1gjzXTz_hf8n-L2t-P-mO1zQu_OjJs4Lwiyeo3YUxv24/edit?usp=sharing
